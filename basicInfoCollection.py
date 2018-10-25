@@ -32,6 +32,7 @@ def get_voltage_extremes(df):
         None
     """
     metrics['voltage_extremes'] = (np.min(df.volt), np.max(df.volt))
+    return metrics['voltage_extremes']
 
 
 def get_duration(df):
@@ -45,5 +46,5 @@ def get_duration(df):
         None
     """
     metrics['duration'] = df.time[len(df.time)-1] # the last value of time col
-
+    return metrics['duration']
 
