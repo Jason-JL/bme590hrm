@@ -10,6 +10,8 @@
 import pandas as pd
 import numpy as np
 import math
+from scipy.signal import butter, lfilter # Import the extra module required
+
 
 measures = {}
 
@@ -237,7 +239,18 @@ def fit_peaks(df):
     measures['peaks'] = detect_peaks(df, w_best)
 
 
+# Define the filter
+def butter_lowpass(cutoff, fs, order=5):
+    nyq = 0.5 * fs # Nyquist frequeny is half the sampling frequency
+    normal_cutoff = cutoff / nyq
+    b, a = butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
 
+
+def butter_lowpass_filter(data, cutoff, fs, order):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = lfilter(b, a, data)
+    return y
 
 
 
