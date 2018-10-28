@@ -164,33 +164,33 @@ def test_get_beats(test_input, expected):
     assert(minimum <= num_beats <= maximum)
 
 
-@pytest.mark.parametrize("test_input, expected", [
-    ("test_data/test_data1.csv", [10, 160]),
-])
-def get_num_beats(test_input, expected):
-    df = get_data(test_input)
-    peaks, _ = fit_peaks(df)
-    beats = get_beats(df, peaks)
-    num_beats = get_num_beats(beats)
-    minimum, maximum = expected
-    print("num of beats is {}".format(num_beats))
-    assert (minimum <= num_beats <= maximum)
-
-
-@pytest.mark.parametrize("test_input, expected", [
-    ("test_data/test_data1.csv", [10, 160])
-])
-def get_mean_hr_bpm(test_input, expected):
-    raw_input = input('Enter your input:')
-    input_duration = float(raw_input)
-    df = get_data(test_input)
-    duration = get_duration(df)
-    fs = calc_fs(df)
-    rolling_mean = calc_rolling_mean(df, 0.25, fs)
-    peaks = detect_peaks(df, 100, rolling_mean)
-    rr_list = calc_rr(df, peaks)
-    bpm = calc_bpm(rr_list)
-    mean_hr_bpm = get_mean_hr_bpm(duration, bpm, input_duration)
-    minimum, maximum = expected
-    print("mean_hr_bpm is {}".format(mean_hr_bpm))
-    assert (minimum <= mean_hr_bpm <= maximum)
+# @pytest.mark.parametrize("test_input, expected", [
+#     ("test_data/test_data1.csv", [10, 160]),
+# ])
+# def get_num_beats(test_input, expected):
+#     df = get_data(test_input)
+#     peaks, _ = fit_peaks(df)
+#     beats = get_beats(df, peaks)
+#     num_beats = get_num_beats(beats)
+#     minimum, maximum = expected
+#     print("num of beats is {}".format(num_beats))
+#     assert (minimum <= num_beats <= maximum)
+#
+#
+# @pytest.mark.parametrize("test_input, expected", [
+#     ("test_data/test_data1.csv", [10, 160])
+# ])
+# def get_mean_hr_bpm(test_input, expected):
+#     raw_input = input('Enter your input:')
+#     input_duration = float(raw_input)
+#     df = get_data(test_input)
+#     duration = get_duration(df)
+#     fs = calc_fs(df)
+#     rolling_mean = calc_rolling_mean(df, 0.25, fs)
+#     peaks = detect_peaks(df, 100, rolling_mean)
+#     rr_list = calc_rr(df, peaks)
+#     bpm = calc_bpm(rr_list)
+#     mean_hr_bpm = get_mean_hr_bpm(duration, bpm, input_duration)
+#     minimum, maximum = expected
+#     print("mean_hr_bpm is {}".format(mean_hr_bpm))
+#     assert (minimum <= mean_hr_bpm <= maximum)
