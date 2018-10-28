@@ -60,31 +60,32 @@ def get_duration(df):
     return measures['duration']
 
 
-def get_num_beats(peaks):
+def get_num_beats(beats):
     """
     number of detected beats in the strip, count using a list of peaks
 
     Args:
-        peaks: the peak list returned by detect_peaks
+        beats: the peak list returned by detect_peaks
 
     Returns:
         num_beats: len of the list
     """
-    measures['num_beats'] = len(peaks)
+    measures['num_beats'] = len(beats)
     return measures['num_beats']
 
 
-def get_beats(peaks):
+def get_beats(df, peaks):
     """
     numpy array of times when a beat occurred
 
     Args:
+        df: a dataFrame has column names: time, volt
         peaks: the peak list returned by detect_peaks
 
     Returns:
         numpy array of times when a beat occurred
     """
-    measures['beats'] = np.array([x[1] for x in peaks])
+    measures['beats'] = np.array([df.time[x] for x in peaks])
     return measures['beats']
 
 
@@ -98,19 +99,6 @@ def get_mean_hr_bpm(duration, bpm, user_input_duration):
     """
     measures['mean_hr_bpm'] = user_input_duration / duration * bpm
     return measures['mean_hr_bpm']
-
-
-def calc_bpm(rr_list):
-    """
-    calculate beats per minutes
-    Args:
-        rr_list: list of intervals between r and r component
-
-    Returns:
-        beats per minutes
-    """
-    measures['bpm'] = 60 / np.mean(rr_list)
-    return measures['bpm']
 
 
 def calc_fs(df):
@@ -144,7 +132,7 @@ def calc_rolling_mean(df, hrw, fs):
     avg_hr = (np.mean(df.volt))
     mov_avg = [avg_hr if math.isnan(x) else x for x in mov_avg]
     df['rolling_mean'] = mov_avg
-    return df.rolling_mean
+    return [x for x in df.rolling_mean]
 
 
 def calc_rr(df, peaks):
@@ -162,6 +150,19 @@ def calc_rr(df, peaks):
     return measures['rr_list']
 
 
+def calc_bpm(rr_list):
+    """
+    calculate beats per minutes
+    Args:
+        rr_list: list of intervals between r and r component
+
+    Returns:
+        beats per minutes
+    """
+    measures['bpm'] = 60 / np.mean(rr_list)
+    return measures['bpm']
+
+
 def calc_rrsd(rr_list):
     """
     calculate sd of intervals between r and r component
@@ -176,7 +177,7 @@ def calc_rrsd(rr_list):
     return measures['rrsd'];
 
 
-def detect_peaks(df, w):
+def detect_peaks(df, w, rolling_mean):
     """
     Using rolling_mean to detect ROI, and label the index of the max in ROI
 
@@ -189,7 +190,7 @@ def detect_peaks(df, w):
         list of index of detected r-component
     """
     # raise moving average
-    rolling_mean = [(x+((x/100)*w)) for x in df.rolling_mean]
+    rolling_mean = [(x+((x/100)*w)) for x in rolling_mean]
     window = []
     peaks = []
     cnt = 0
@@ -208,7 +209,7 @@ def detect_peaks(df, w):
             window = []  # Clear marked ROI
         cnt += 1
 
-    return measures['peaks']
+    return peaks
 
 
 def fit_peaks(df):
@@ -225,19 +226,22 @@ def fit_peaks(df):
     w_list = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]
     w_valid = []
 
+    hrw = 0.25
+    fs = calc_fs(df)
+    rolling_mean = calc_rolling_mean(df, hrw, fs)
     # detect peaks with all percentages
     for w in w_list:
-        peaks = detect_peaks(df, w)
+        peaks = detect_peaks(df, w, rolling_mean)
         rr_list = calc_rr(df, peaks)
         bpm = calc_bpm(rr_list)
         rrsd = calc_rrsd(rr_list)
-        if (rrsd > 1) and ((bpm > 30) and (bpm < 130)):
+        if (rrsd > 1) and ((bpm > 30) and (bpm < 160)):
             w_valid.append([rrsd, w])
 
     # detect peaks with 'w' that goes with lowest rrsd
     w_best = min(w_valid, key=lambda t: t[0])[1]
-    measures['peaks'] = detect_peaks(df, w_best)
-
+    measures['peaks'] = detect_peaks(df, w_best, rolling_mean)
+    return measures['peaks'], w_best
 
 # Define the filter
 def butter_lowpass(cutoff, fs, order=5):
