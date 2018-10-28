@@ -1,6 +1,7 @@
 import pytest
-from basicInfoCollection import get_data, get_duration, get_voltage_extremes
-
+from hbAnalysis import get_data
+from hbAnalysis import get_duration, get_voltage_extremes
+from hbAnalysis import get_beats, get_num_beats, get_mean_hr_bpm
 
 @pytest.mark.parametrize("test_input, expected", [
     ("unittest_data/test_data1.csv",
