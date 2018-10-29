@@ -161,6 +161,7 @@ def test_get_beats(test_input, expected):
     minimum, maximum = expected
     print("num of beats is {}".format(num_beats))
     print("beats is {}".format(beats))
+    print(type(beats))
     assert(minimum <= num_beats <= maximum)
 
 

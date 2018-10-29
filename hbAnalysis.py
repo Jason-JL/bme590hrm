@@ -85,7 +85,10 @@ def get_beats(df, peaks):
     Returns:
         numpy array of times when a beat occurred
     """
-    measures['beats'] = np.array([df.time[x] for x in peaks])
+    times = df.iloc[:, 0].values
+    # print("peaks is {}", peaks)
+    measures['beats'] = [times[x] for x in peaks]
+    # print("in get_beats, beats is {}".format(measures['beats']))
     return measures['beats']
 
 
@@ -184,8 +187,7 @@ def detect_peaks(df, w, rolling_mean):
     Args:
         df: a dataFrame has column names: time, volt
         w: weight to raise the rolling mean
-        fs: sampling frequency  
-
+        rolling_mean:
     Returns:
         list of index of detected r-component
     """
@@ -223,7 +225,8 @@ def fit_peaks(df):
 
     """
     # list with moving average raise percentages,
-    w_list = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120]
+    w_list = [5, 10, 15, 20, 25, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120,
+              130, 140, 150, 160, 170, 180]
     w_valid = []
 
     hrw = 0.25
@@ -235,7 +238,7 @@ def fit_peaks(df):
         rr_list = calc_rr(df, peaks)
         bpm = calc_bpm(rr_list)
         rrsd = calc_rrsd(rr_list)
-        if (rrsd > 1) and ((bpm > 30) and (bpm < 160)):
+        if (rrsd > 1) and ((bpm > 30) and (bpm < 130)):
             w_valid.append([rrsd, w])
 
     # detect peaks with 'w' that goes with lowest rrsd
@@ -243,18 +246,30 @@ def fit_peaks(df):
     measures['peaks'] = detect_peaks(df, w_best, rolling_mean)
     return measures['peaks'], w_best
 
-# Define the filter
-def butter_lowpass(cutoff, fs, order=5):
-    nyq = 0.5 * fs # Nyquist frequeny is half the sampling frequency
-    normal_cutoff = cutoff / nyq
-    b, a = butter(order, normal_cutoff, btype='low', analog=False)
-    return b, a
 
+def process(df, metrics):
+    raw_input = input('Enter your input:')
+    input_duration = float(raw_input)
 
-def butter_lowpass_filter(data, cutoff, fs, order):
-    b, a = butter_lowpass(cutoff, fs, order=order)
-    y = lfilter(b, a, data)
-    return y
+    peaks, w_best = fit_peaks(df)
+    print("w_best is {}".format(w_best))
+    get_voltage_extremes(df)
+    get_duration(df)
+    get_beats(df, peaks)
+    get_num_beats(measures['beats'])
+    get_mean_hr_bpm(measures['duration'],
+                    calc_bpm(measures['rr_list']),
+                    input_duration)
 
+    metrics['peaks'] = measures['peaks']
+    metrics['bpm'] = measures['bpm']
+    metrics['voltage_extremes'] = measures['voltage_extremes']
+    metrics['duration'] = measures['duration']
+    metrics['beats'] = measures['beats']
+    metrics['num_beats'] = measures['num_beats']
+    metrics['mean_hr_bpm'] = measures['mean_hr_bpm']
+
+    # beats = metrics['beats']
+    # print("in process: beats is {}".format(get_beats(df, peaks)))
 
 
